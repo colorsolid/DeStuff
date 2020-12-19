@@ -5,7 +5,7 @@ import time
 
 from destuff import BASE_DIR
 from filecmp import cmp
-from shutil import copyfile, move
+from shutil import copyfile
 
 
 def time_this(func):
@@ -22,7 +22,6 @@ def time_this(func):
 
 def load_settings():
     filepath = os.path.join(BASE_DIR, 'destuff.json')
-    print(filepath)
     if os.path.isfile(filepath):
         with open(filepath, 'r') as settings_file:
             settings = json.load(settings_file)
@@ -107,21 +106,6 @@ def update_sdat(dir):
             copyfile(dcx_path, sdat_path)
 
 
-def prepare_files(dir):
-    files = os.listdir(dir)
-    paths = [os.path.join(dir, f) for f in files]
-    for filepath in paths:
-        _, ext = os.path.splitext(filepath)
-        if ext in ['.sdat', '.luabnd']:
-            bak_path = filepath + '.bak'
-            if not os.path.isfile(bak_path):
-                os.rename(filepath, bak_path)
-    for filepath in paths:
-        _, ext = os.path.splitext(filepath)
-        if ext == '.dcx':
-            sdat_path = filepath + '.sdat'
-            copyfile(filepath, sdat_path)
-
 
 def reset_permanently(dir):
     files = os.listdir(dir)
@@ -135,36 +119,6 @@ def reset_permanently(dir):
                 os.remove(filepath)
             else:
                 os.rename(filepath, restored)
-
-
-def flip_files(dir, ext_a, ext_b):
-    files = os.listdir(dir)
-    files = [os.path.splitext(f) for f in files]
-    for file in files:
-        filename, ext = file
-        if ext == '.sdat':
-            sdat_path = os.path.join(dir, filename + ext)
-            ext_a_path = os.path.join(dir, filename + ext + ext_a)
-            move(sdat_path, ext_a_path)
-            # print(filename + ext, '------>', filename + ext + ext_a)
-    for file in files:
-        filename, ext = file
-        if ext == ext_b:
-            filename, subext = os.path.splitext(filename)
-            if subext == '.sdat':
-                ext_b_path = os.path.join(dir, filename + subext + ext_b)
-                sdat_path = os.path.join(dir, filename + subext)
-                move(ext_b_path, sdat_path)
-                # print(filename + subext + ext_b, '------>', filename + subext)
-
-
-
-def reset_temporarily(dir):
-    flip_files(dir, '.modded', '.bak')
-
-
-def restore_modifications(dir):
-    flip_files(dir, '.bak', '.modded')
 
 
 @time_this
@@ -187,14 +141,15 @@ def find(dir, search_term, case_sensitive=False, regex=False):
                 else:
                     results = re.findall(search_term, line, re.IGNORECASE)
                 if results:
-                    lines_found.append(line)
+                    lines_found.append((i + 1, line))
             else:
                 if not case_sensitive:
-                    line = line.lower()
+                    temp_line = line.lower()
                     search_term = search_term.lower()
-                if search_term in line:
-                    lines_found.append((i, line))
+                if search_term in temp_line:
+                    lines_found.append((i + 1, line))
         if lines_found:
+            lines_found.reverse()
             found.append((filename, lines_found))
     return found
 
@@ -205,7 +160,6 @@ def remove_search(listframe, settings):
         search_term = listframe.listbox.get(click_index)
         listframe.listbox.delete(click_index)
         settings['search-terms'].remove(search_term)
-        listframe.master.master.lb_search_results.listbox.delete(0, tk.END)
         save_settings(settings)
     except IndexError:
         pass

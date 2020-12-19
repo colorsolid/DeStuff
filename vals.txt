@@ -1,0 +1,20 @@
+proxy:OnActionCheckKey(event_num,10000,"OnEvent_4020",key,(4 action_num?))
+
+0 - interact button
+1 - up
+2 - down
+3 - left
+4 - right
+
+
+ANIMATIONS:
+two-hand left - 70
+light as a feather - 1510
+traverse - 7410
+
+
+castle	m02	0	HELPID_CHECK_OUJOU		70
+mine	m06	4	HELPID_CHECK_KOUDOU		150
+prison	m04	2	HELPID_CHECK_ROUJOU		430
+shrine	m03	1	HELPID_CHECK_HURUTORIDE		583
+swamp	m05	3	HELPID_CHECK_HUJOU		280

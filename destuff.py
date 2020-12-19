@@ -306,7 +306,6 @@ class MainWindow(tk.Frame):
                 self.lb_file_context.listbox.delete(0, tk.END)
                 for result in self.found:
                     result_filename, matches = result
-                    matches.reverse()
                     if result_filename == filename:
                         for match in matches:
                             i, context = match

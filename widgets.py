@@ -1,12 +1,63 @@
 import os
+import subprocess
 import tkinter as tk
 
 from destuff import BASE_DIR, config_grids
+from diff_match_patch import diff_match_patch
+from shutil import copyfile, move
 
 
 # -------------------------------------------------------
 # -------------------- M E N U B A R --------------------
 # -------------------------------------------------------
+
+DMP = diff_match_patch()
+
+
+def prepare_files(dir):
+    files = os.listdir(dir)
+    paths = [os.path.join(dir, f) for f in files]
+    for filepath in paths:
+        _, ext = os.path.splitext(filepath)
+        if ext in ['.sdat', '.luabnd']:
+            bak_path = filepath + '.bak'
+            if not os.path.isfile(bak_path):
+                os.rename(filepath, bak_path)
+    for filepath in paths:
+        _, ext = os.path.splitext(filepath)
+        if ext == '.dcx':
+            sdat_path = filepath + '.sdat'
+            copyfile(filepath, sdat_path)
+
+
+def flip_files(dir, ext_a, ext_b):
+    files = os.listdir(dir)
+    files = [os.path.splitext(f) for f in files]
+    for file in files:
+        filename, ext = file
+        if ext == '.sdat':
+            sdat_path = os.path.join(dir, filename + ext)
+            ext_a_path = os.path.join(dir, filename + ext + ext_a)
+            move(sdat_path, ext_a_path)
+            # print(filename + ext, '------>', filename + ext + ext_a)
+    for file in files:
+        filename, ext = file
+        if ext == ext_b:
+            filename, subext = os.path.splitext(filename)
+            if subext == '.sdat':
+                ext_b_path = os.path.join(dir, filename + subext + ext_b)
+                sdat_path = os.path.join(dir, filename + subext)
+                move(ext_b_path, sdat_path)
+                # print(filename + subext + ext_b, '------>', filename + subext)
+
+
+def reset_temporarily(dir):
+    flip_files(dir, '.modded', '.bak')
+
+
+def restore_modifications(dir):
+    flip_files(dir, '.bak', '.modded')
+
 
 class Menubar(tk.Menu):
     def __init__(self, master):
@@ -14,8 +65,21 @@ class Menubar(tk.Menu):
         self.master = master
 
         scripts_dir = self.master.master.settings['scripts-directory']
+        self.scripts_dir = scripts_dir
 
         self.file_menu = tk.Menu(self, tearoff=0)
+        self.file_menu.add_command(
+            label='Open scripts dir',
+            command=lambda: os.startfile(scripts_dir)
+        )
+
+        self.file_menu.add_command(
+            label='Open DeSBNDBuild',
+            command=lambda: os.startfile(r'C:\Users\cunss\Downloads\DeSBNDBuild.exe')
+        )
+
+        self.file_menu.add_separator()
+
         self.file_menu.add_command(label='Restart', command=self.master.restart)
         self.file_menu.add_command(label='Quit', command=self.master.quit)
 
@@ -67,6 +131,16 @@ Modifications can be restored.'
                 label='Restore game to previously modified state.'
             ))
 
+        self.prepare_menu.add_separator()
+
+        self.prepare_menu.add_command(
+            label='Generate patches',
+            command=lambda: self.master.open_confirmation(
+                func=self.gen_patches,
+                func_text='Generate patches',
+                label='Create patch files for current modifications'
+            ))
+
         self.debug_menu = tk.Menu(self, tearoff=0)
         self.debug_menu.add_command(
             label='Clear console', command=lambda: os.system('cls')
@@ -75,6 +149,26 @@ Modifications can be restored.'
         self.add_cascade(label='File', menu=self.file_menu)
         self.add_cascade(label='Prepare', menu=self.prepare_menu)
         self.add_cascade(label='Debug', menu=self.debug_menu)
+
+
+    def gen_patches(self):
+        nums = [1, 2, 3, 4, 5, 6, 8]
+        for num in nums:
+            sdat_name = f'm0{num}.luabnd.dcx.sdat'
+            sdat_path = os.path.join(self.scripts_dir, sdat_name)
+            bak_path = sdat_path + '.bak'
+            try:
+                with open(sdat_path, 'rb') as infile:
+                    modded_data = infile.read().hex()
+                with open(bak_path, 'rb') as infile:
+                    unmodded_data = infile.read().hex()
+                patches = DMP.patch_make(unmodded_data, modded_data)
+                diff = DMP.patch_toText(patches)
+                patch_name = os.path.split(sdat_name)[1] + '.patch'
+                with open(os.path.join(BASE_DIR, patch_name), 'w+') as outfile:
+                    outfile.write(diff)
+            except FileNotFoundError:
+                print('file not found:', num)
 
 
 #----------------------------------------------------------------
