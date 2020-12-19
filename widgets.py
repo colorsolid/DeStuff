@@ -64,13 +64,13 @@ class Menubar(tk.Menu):
         super().__init__(master)
         self.master = master
 
-        scripts_dir = self.master.master.settings['scripts-directory']
-        self.scripts_dir = scripts_dir
+        script_dir = self.master.master.settings['script-directory']
+        self.script_dir = script_dir
 
         self.file_menu = tk.Menu(self, tearoff=0)
         self.file_menu.add_command(
-            label='Open scripts dir',
-            command=lambda: os.startfile(scripts_dir)
+            label='Open script dir',
+            command=lambda: os.startfile(script_dir)
         )
 
         self.file_menu.add_command(
@@ -85,7 +85,7 @@ class Menubar(tk.Menu):
 
         self.prepare_menu = tk.Menu(self, tearoff=0)
         self.prepare_menu.add_command(
-            label='Set scripts dir', command=self.master.browse_directory
+            label='Set script dir', command=self.master.browse_directory
         )
 
         self.prepare_menu.add_separator()
@@ -93,7 +93,7 @@ class Menubar(tk.Menu):
         self.prepare_menu.add_command(
             label='Prepare files',
             command=lambda: self.master.open_confirmation(
-                func=lambda: prepare_files(scripts_dir),
+                func=lambda: prepare_files(script_dir),
                 func_text='Prepare files',
                 label='Prepare files for modding?\n\
 (only run once unless you permanently restore,\n\
@@ -107,7 +107,7 @@ Extract dcx files after doing this.'
         self.prepare_menu.add_command(
             label='Reset permanently',
             command=lambda: self.master.open_confirmation(
-                func=lambda: reset_permanently(scripts_dir),
+                func=lambda: reset_permanently(script_dir),
                 func_text='Reset permanently',
                 label='Reset game files to their original state and\n\
 permanently delete all modifications.'
@@ -117,7 +117,7 @@ permanently delete all modifications.'
         self.prepare_menu.add_command(
             label='Reset temporarily',
             command=lambda: self.master.open_confirmation(
-                func=lambda: reset_temporarily(scripts_dir),
+                func=lambda: reset_temporarily(script_dir),
                 func_text='Reset temporarily',
                 label='Reset game files to their original state.\n\
 Modifications can be restored.'
@@ -126,7 +126,7 @@ Modifications can be restored.'
         self.prepare_menu.add_command(
             label='Restore modifications',
             command=lambda: self.master.open_confirmation(
-                func=lambda: restore_modifications(scripts_dir),
+                func=lambda: restore_modifications(script_dir),
                 func_text='Restore modifications',
                 label='Restore game to previously modified state.'
             ))
@@ -155,7 +155,7 @@ Modifications can be restored.'
         nums = [1, 2, 3, 4, 5, 6, 8]
         for num in nums:
             sdat_name = f'm0{num}.luabnd.dcx.sdat'
-            sdat_path = os.path.join(self.scripts_dir, sdat_name)
+            sdat_path = os.path.join(self.script_dir, sdat_name)
             bak_path = sdat_path + '.bak'
             try:
                 with open(sdat_path, 'rb') as infile:

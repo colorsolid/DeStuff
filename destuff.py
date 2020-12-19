@@ -47,7 +47,7 @@ class MainWindow(tk.Frame):
     def browse_directory(self):
         directory = tk.filedialog.askdirectory(initialdir = BASE_DIR)
         if os.path.isdir(directory):
-            self.master.settings['scripts-directory'] = directory
+            self.master.settings['script-directory'] = directory
             save_settings(self.master.settings)
 
 
@@ -67,7 +67,7 @@ class MainWindow(tk.Frame):
 
     def get_vars(self):
         settings = self.master.settings
-        dir = settings['scripts-directory']
+        dir = settings['script-directory']
         fg = settings['colors']['dark']
         bg = settings['colors']['light']
         font = settings['font']
@@ -193,7 +193,7 @@ class MainWindow(tk.Frame):
 
     def search(self, text):
         self.found = find(
-            self.master.settings['scripts-directory'], text,
+            self.master.settings['script-directory'], text,
             self.var_case_sensitive.get(), self.var_regex.get()
         )
         self.found.reverse()

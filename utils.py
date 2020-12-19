@@ -36,7 +36,7 @@ def load_settings():
                 'width': 780,
                 'height': 570
             },
-            'scripts-directory': '',
+            'script-directory': '',
             'search-terms': []
         }
     return settings
