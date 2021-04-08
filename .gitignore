@@ -1,3 +1,5 @@
 destuff.bat
 destuff.json
 __pycache__/
+build/
+dist/

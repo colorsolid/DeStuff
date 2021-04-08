@@ -59,6 +59,14 @@ def restore_modifications(dir):
     flip_files(dir, '.bak', '.modded')
 
 
+def reset_permanently(dir):
+    files = os.listdir(dir)
+    for file in files:
+        name, ext = os.path.splitext(file)
+        if ext == '.bak':
+            move(os.path.join(dir, file), os.path.join(dir, name))
+
+
 class Menubar(tk.Menu):
     def __init__(self, master):
         super().__init__(master)

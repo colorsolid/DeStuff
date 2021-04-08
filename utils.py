@@ -121,7 +121,7 @@ def reset_permanently(dir):
                 os.rename(filepath, restored)
 
 
-@time_this
+# @time_this
 def find(dir, search_term, case_sensitive=False, regex=False):
     # ['m02_00_00_00.lua', ['line1', 'line2']]
     found = []
@@ -143,6 +143,7 @@ def find(dir, search_term, case_sensitive=False, regex=False):
                 if results:
                     lines_found.append((i + 1, line))
             else:
+                temp_line = line
                 if not case_sensitive:
                     temp_line = line.lower()
                     search_term = search_term.lower()

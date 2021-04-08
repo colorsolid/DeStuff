@@ -88,7 +88,7 @@ class MainWindow(tk.Frame):
 
         self.btn_update_global = tk.Button(
             self.btn_frame, text='Update global files',
-            command=lambda: update_global(dir), font=font, **btn
+            command=lambda: update_global(self.master.settings['script-directory']), font=font, **btn
         )
         self.btn_update_global.grid(row=0, column=0, **btn_grid)
 
