@@ -1,10 +1,12 @@
 import os
 import subprocess
 import tkinter as tk
+import tkinter.filedialog
+import utils
 
-from destuff import BASE_DIR, config_grids
 from diff_match_patch import diff_match_patch
 from shutil import copyfile, move
+from utils import BASE_DIR, config_grids
 
 
 # -------------------------------------------------------
@@ -73,6 +75,7 @@ class Menubar(tk.Menu):
         self.master = master
 
         script_dir = self.master.master.settings['script-directory']
+        desbndbuild = self.master.master.settings['desbndbuild']
         self.script_dir = script_dir
 
         self.file_menu = tk.Menu(self, tearoff=0)
@@ -81,9 +84,25 @@ class Menubar(tk.Menu):
             command=lambda: os.startfile(script_dir)
         )
 
+        def set_desbndbuild():
+            desbndbuild = tkinter.filedialog.askopenfilename(
+                initialdir='/', title='Browse to DeSBNDBuild.exe',
+                filetypes=(('Text files', '*.exe*'), ('all files', '.*'))
+            )
+            print('des', desbndbuild)
+            self.master.master.settings['desbndbuild'] = desbndbuild
+            utils.save_settings(self.master.master.settings)
+            if desbndbuild:
+                os.startfile(desbndbuild)
+
+        if desbndbuild:
+            def command(): os.startfile(desbndbuild)
+        else:
+            command = set_desbndbuild
+
         self.file_menu.add_command(
             label='Open DeSBNDBuild',
-            command=lambda: os.startfile(r'C:\Users\cunss\Downloads\DeSBNDBuild.exe')
+            command=command
         )
 
         self.file_menu.add_separator()
@@ -146,7 +165,8 @@ Modifications can be restored.'
             command=lambda: self.master.open_confirmation(
                 func=self.gen_patches,
                 func_text='Generate patches',
-                label='Create patch files for current modifications'
+                label='Create patch files for current modifications?\n\n\
+* * * WARNING * * *\nAny previously generated patches will be overwritten.'
             ))
 
         self.debug_menu = tk.Menu(self, tearoff=0)
@@ -157,7 +177,6 @@ Modifications can be restored.'
         self.add_cascade(label='File', menu=self.file_menu)
         self.add_cascade(label='Prepare', menu=self.prepare_menu)
         self.add_cascade(label='Debug', menu=self.debug_menu)
-
 
     def gen_patches(self):
         nums = [1, 2, 3, 4, 5, 6, 8]
@@ -179,9 +198,9 @@ Modifications can be restored.'
                 print('file not found:', num)
 
 
-#----------------------------------------------------------------
+# ---------------------------------------------------------------
 # -------------------- C O N T E X T M E N U --------------------
-#----------------------------------------------------------------
+# ---------------------------------------------------------------
 
 class ContextMenu(tk.Menu):
     def __init__(self, master, event, *args, **kwargs):
@@ -196,7 +215,6 @@ class ContextMenu(tk.Menu):
             event.widget.activate(click_index)
             event.widget.selection_set(first=click_index)
             event.widget.focus_force()
-            selection = event.widget.get(event.widget.curselection())
 
             if functions:
                 [self.add_command(**command) for command in functions]
@@ -239,7 +257,7 @@ class ScrollbarListFrame(tk.Frame):
             '<Button-3>',
             lambda event: self.change_selection(
                 event,
-                callback=lambda event: self.master.master.open_context_menu(self.master, event)
+                callback=lambda _: self.master.master.open_context_menu(self.master, event)
             )
         )
 
@@ -247,22 +265,21 @@ class ScrollbarListFrame(tk.Frame):
 
         self.scrollbar.config(command=self.listbox.yview)
 
-
     def change_selection(self, event, callback=lambda *args: None):
-        self.clear_selection()
-        click_index = event.widget.nearest(event.y_root-event.widget.winfo_rooty())
-        event.widget.select_set(click_index)
-        event.widget.event_generate("<<ListboxSelect>>")
-        callback(event)
-
+        try:
+            self.clear_selection()
+            click_index = event.widget.nearest(event.y_root-event.widget.winfo_rooty())
+            event.widget.select_set(click_index)
+            event.widget.event_generate("<<ListboxSelect>>")
+            callback(event)
+        except tk._tkinter.TclError:
+            pass  # listbox empty
 
     def clear_selection(self):
         self.listbox.select_clear(0, tk.END)
 
-
     def clear(self):
         self.listbox.delete(0, tk.END)
-
 
     def populate(self):
         for i in range(100):

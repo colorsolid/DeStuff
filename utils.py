@@ -1,11 +1,27 @@
 import json
 import os
 import re
+import sys
 import time
 
-from destuff import BASE_DIR
 from filecmp import cmp
 from shutil import copyfile
+
+
+class DirCheckException(Exception):
+    pass
+
+
+BASE_DIR = os.path.dirname(sys.argv[0])
+
+
+def config_grids(widget, rows=None, columns=None):
+    if not rows:
+        rows = [1]
+    if not columns:
+        columns = [1]
+    [widget.rowconfigure(i, weight=w) for i, w in enumerate(rows)]
+    [widget.columnconfigure(i, weight=w) for i, w in enumerate(columns)]
 
 
 def time_this(func):
@@ -37,14 +53,17 @@ def load_settings():
                 'height': 570
             },
             'script-directory': '',
-            'search-terms': []
+            'search-terms': [],
+            'desbndbuild': ''
         }
+        save_settings(settings)
     return settings
 
 
 def save_settings(settings):
+    # raise DirCheckException(BASE_DIR)
     filepath = os.path.join(BASE_DIR, 'destuff.json')
-    with open(filepath, 'w+') as  settings_file:
+    with open(filepath, 'w+') as settings_file:
         json.dump(settings, settings_file)
 
 
@@ -91,7 +110,7 @@ def update_global(dir):
                 if os.path.isfile(main_path):
                     extract_path = os.path.join(extract_dir, file)
                     if not os.path.isfile(extract_path) \
-                    or not cmp(main_path, extract_path, shallow=False):
+                            or not cmp(main_path, extract_path, shallow=False):
                         copyfile(main_path, extract_path)
 
 
@@ -102,9 +121,8 @@ def update_sdat(dir):
         dcx_path = os.path.join(dir, file)
         sdat_path = dcx_path + '.sdat'
         if not os.path.isfile(sdat_path) \
-        or not cmp(dcx_path, sdat_path, shallow=False):
+                or not cmp(dcx_path, sdat_path, shallow=False):
             copyfile(dcx_path, sdat_path)
-
 
 
 def reset_permanently(dir):
@@ -125,9 +143,11 @@ def reset_permanently(dir):
 def find(dir, search_term, case_sensitive=False, regex=False):
     # ['m02_00_00_00.lua', ['line1', 'line2']]
     found = []
-    files = [os.path.join(dir, f) for f in os.listdir(dir)
-        if os.path.isfile(os.path.join(dir, f))
-        and os.path.splitext(f)[1] == '.lua']
+    files = []
+    for f in os.listdir(dir):
+        if os.path.isfile(os.path.join(dir, f)) \
+                and os.path.splitext(f)[1] == '.lua':
+            files.append(os.path.join(dir, f))
     for file in files:
         lines_found = []
         filename = os.path.split(file)[1]
@@ -166,7 +186,8 @@ def remove_search(listframe, settings):
         pass
 
 
-def open_file(dir, text):
-    path = os.path.join(dir, text.split()[1])
+def open_file(dir_, text):
+    print(dir_)
+    path = os.path.join(dir_, text.split()[1])
     if os.path.isfile(path):
         os.startfile(path)
