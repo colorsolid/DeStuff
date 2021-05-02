@@ -60,7 +60,7 @@ class MainWindow(tk.Frame):
 
         self.btn_update_sdat = tk.Button(
             self.btn_frame, text='Update sdat files',
-            command=lambda: update_sdat(dir), font=self.font_, **self.button_
+            command=lambda: update_sdat(self.directory_), font=self.font_, **self.button_
         )
         self.btn_update_sdat.grid(row=2, column=0, **self.button_grid_)
 
